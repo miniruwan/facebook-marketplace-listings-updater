@@ -57,11 +57,11 @@ class Scraper:
 		self.driver.get(self.url)
 		self.driver.maximize_window()
 
-	# Add login functionality and load cookies if there are any with 'cookies_file_name'
-	def add_login_functionality(self, login_url, is_logged_in_selector, cookies_file_name):
+	# Add login functionality and load cookies if there are any with 'account_name'
+	def add_login_functionality(self, login_url, is_logged_in_selector, account_name):
 		self.login_url = login_url
 		self.is_logged_in_selector = is_logged_in_selector
-		self.cookies_file_name = cookies_file_name + '.pkl'
+		self.cookies_file_name = account_name + '.pkl'
 		self.cookies_file_path = self.cookies_folder + self.cookies_file_name
 
 		# Check if there is a cookie file saved
@@ -75,7 +75,8 @@ class Scraper:
 				return
 		
 		# Wait for the user to log in with maximum amount of time 5 minutes
-		print('Please login manually in the browser and after that you will be automatically loged in with cookies. Note that if you do not log in for five minutes, the program will turn off.')
+		self.driver.execute_script(f'document.title = "{account_name}"')
+		print(f'Please login to "{account_name}" account manually in the browser and after that you will be automatically loged in with cookies. Note that if you do not log in for five minutes, the program will turn off.')
 		is_logged_in = self.is_logged_in(300)
 
 		# User is not logged in so exit from the program
@@ -202,6 +203,21 @@ class Scraper:
 			self.wait_random_time()
 
 		element = self.find_element_by_xpath(xpath)
+
+		try:
+			element.click()
+		except ElementClickInterceptedException:
+			self.driver.execute_script("arguments[0].click();", element)
+
+	# Wait random time before clicking on the element, and also ignore if element can't be found
+	def element_click_by_xpath_ignore_if_not_found(self, xpath, delay = True):
+		if delay:
+			self.wait_random_time()
+
+		element = self.find_element_by_xpath(xpath, False, 2)
+
+		if not element:
+			return # If element is not found, ignore
 
 		try:
 			element.click()

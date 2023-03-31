@@ -19,6 +19,12 @@ config = {
         "Hawkes Bay Residents Buy, Swap & Sell",
         "*NEW*Online Garage Sale Hawkes Bay ONLY",
         "Hawkes Bay Boycott Online Garage Sale",
-        "Napier/Hastings HB Cars For Sale"
+        "Napier/Hastings HB Cars For Sale",
+        "Second Hand Vehicles: Hawke's Bay",
+        "HB ONLINE GARAGE SALE",
+        "Buy Cheap! Hawkes Bay",
+        "HASTINGS NEW ZEALAND ONLY BUY/SELL/SWAP",
+        "Local Sales HB",
+        "hawkesbay buy/swap/sell"
     ]
 }

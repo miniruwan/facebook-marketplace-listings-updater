@@ -97,6 +97,9 @@ def generate_multiple_images_path(path, images):
 			# Remove whitespace before and after the string
 			image_name = image_name.strip()
 
+			if image_name == '':
+				continue
+
 			# Add "\n" for indicating new file
 			if images_path != '':
 				images_path += '\n'
@@ -186,4 +189,4 @@ def add_listing_to_multiple_groups(data, scraper):
 		# Remove whitespace before and after the name
 		group_name = group_name.strip()
 
-		scraper.element_click_by_xpath('//span[text()="' + group_name + '"]')
+		scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + group_name + '"]')
