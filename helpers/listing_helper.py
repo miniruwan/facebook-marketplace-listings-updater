@@ -1,3 +1,5 @@
+from config import config
+
 # Remove and then publish each listing
 def update_listings(listings, type, scraper):
 	# If listings are empty stop the function
@@ -6,6 +8,9 @@ def update_listings(listings, type, scraper):
 
 	# Check if listing is already listed and remove it then publish it like a new one
 	for listing in listings:
+		if listing['Refresh Facebook Advertisement?'] != 'Yes':
+			continue
+
 		# Remove listing if it is already published
 		remove_listing(listing, type, scraper)
 
@@ -23,9 +28,10 @@ def remove_listing(data, listing_type, scraper):
 	# Clear input field for searching listings before entering title
 	scraper.element_delete_text('input[placeholder="Search your listings"]')
 	# Enter the title of the listing in the input for search
-	scraper.element_send_keys('input[placeholder="Search your listings"]', title)
+	scraper.element_send_keys('input[placeholder="Search your listings"]', title.lower())
 	# Search for the listing by the title
-	listing_title = scraper.find_element_by_xpath('//span[text()="' + title + '"]', False, 3)
+	listing_title_xpath = f'//span[text()[contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"),"{title.lower()}")]]'
+	listing_title = scraper.find_element_by_xpath(listing_title_xpath, False, 3)
 
 	# Listing not found so stop the function
 	if not listing_title:
@@ -82,8 +88,8 @@ def generate_multiple_images_path(path, images):
 
 	images_path = ''
 
-	# Split image names into array by this symbol ";"
-	image_names = images.split(';')
+	# Split image names into array by this symbol "\n"
+	image_names = images.split('\n')
 
 	# Create string that contains all of the image paths separeted by \n
 	if image_names:
@@ -104,7 +110,8 @@ def add_fields_for_vehicle(data, scraper):
 	# Expand vehicle type select
 	scraper.element_click('label[aria-label="Vehicle type"]')
 	# Select vehicle type
-	scraper.element_click_by_xpath('//span[text()="' + data['Vehicle Type'] + '"]')
+	#scraper.element_click_by_xpath('//span[text()="' + data['Vehicle Type'] + '"]')
+	scraper.element_click_by_xpath('//span[text()="Car/Truck"]')
 
 	# Scroll to years select
 	scraper.scroll_to_element('label[aria-label="Year"]')
@@ -120,10 +127,28 @@ def add_fields_for_vehicle(data, scraper):
 	# Click on the mileage input
 	scraper.element_send_keys('label[aria-label="Mileage"] input', data['Mileage'])
 
+	# Expand body style select
+	scraper.element_click('label[aria-label="Body style"]')
+	# Select vehicle condition
+	scraper.element_click_by_xpath('//span[text()="' + data['Body Style'] + '"]')
+
+	# Expand vehicle condition select
+	scraper.element_click('label[aria-label="Vehicle condition"]')
+	# Select vehicle condition
+	scraper.element_click_by_xpath('//span[text()="' + data['Vehicle Condition'] + '"]')
+
 	# Expand fuel type select
 	scraper.element_click('label[aria-label="Fuel type"]')
 	# Select fuel type
 	scraper.element_click_by_xpath('//span[text()="' + data['Fuel Type'] + '"]')
+
+	# Expand transmission select
+	scraper.element_click('label[aria-label="Transmission"]')
+	# Select transmission
+	scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + '"]')
+
+	if data['Clean Title'] == "Yes":
+		scraper.element_click('input[aria-label="This vehicle has a clean title."]')
 
 # Add specific fields for listing from type item
 def add_fields_for_item(data, scraper):
@@ -155,16 +180,9 @@ def generate_title_for_listing_type(data, listing_type):
 
 	return title
 
+# Post in different groups
 def add_listing_to_multiple_groups(data, scraper):
-	# Create an array for group names by spliting the string by this symbol ";"
-	group_names = data['Groups'].split(';')
-
-	# If the groups are empty do not do nothing
-	if not group_names:
-		return
-
-	# Post in different groups
-	for group_name in group_names:
+	for group_name in config["facebook_group_names"]:
 		# Remove whitespace before and after the name
 		group_name = group_name.strip()
 
