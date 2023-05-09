@@ -214,7 +214,7 @@ class Scraper:
 		if delay:
 			self.wait_random_time()
 
-		element = self.find_element_by_xpath(xpath, False, 2)
+		element = self.find_element_by_xpath(xpath, False, 1)
 
 		if not element:
 			return # If element is not found, ignore
