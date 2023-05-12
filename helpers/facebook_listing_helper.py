@@ -1,5 +1,8 @@
-from config import config
+import os
 import time
+import win32com.client 
+
+from config import config
 
 # Remove and then publish each listing
 def update_listings(listings, type, scraper):
@@ -58,7 +61,7 @@ def publish_listing(data, listing_type, scraper):
 	scraper.element_click('a[href="/marketplace/create/' + listing_type + '/"]')
 
 	# Create string that contains all of the image paths separeted by \n
-	images_path = generate_multiple_images_path(data['Photos Folder'], data['Photos Names'])
+	images_path = get_image_paths(data['Photos Folder'])
 	# Add images to the the listing
 	scraper.input_file_add_files('input[accept="image/*,image/heif,image/heic"]', images_path)
 
@@ -84,32 +87,14 @@ def publish_listing(data, listing_type, scraper):
 	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
 	time.sleep(5)
 
-def generate_multiple_images_path(path, images):
-	# Last character must be '/' because after that we are adding the name of the image
-	if path[-1] != '/':
-		path += '/'
+def get_image_paths(photosSubFolder):
+	shell = win32com.client.Dispatch("WScript.Shell")
 
-	images_path = ''
+	folderPath = os.path.join(config["photos_root_folder"], photosSubFolder, config["facebook_photos_sub_folder_name"])
+	links = [os.path.join(folderPath, fn) for fn in next(os.walk(folderPath))[2]]
+	pathsToLink = [(shell.CreateShortCut(link)).Targetpath for link in links]
 
-	# Split image names into array by this symbol "\n"
-	image_names = images.split('\n')
-
-	# Create string that contains all of the image paths separeted by \n
-	if image_names:
-		for image_name in image_names:
-			# Remove whitespace before and after the string
-			image_name = image_name.strip()
-
-			if image_name == '':
-				continue
-
-			# Add "\n" for indicating new file
-			if images_path != '':
-				images_path += '\n'
-
-			images_path += path + image_name
-
-	return images_path
+	return '\n'.join(pathsToLink)
 
 # Add specific fields for listing from type vehicle
 def add_fields_for_vehicle(data, scraper):

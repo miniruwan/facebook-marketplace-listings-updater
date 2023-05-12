@@ -1,5 +1,7 @@
 config = {
     "google_sheetId": "1Uu4osuI8Z6NXk1LZdXptCEWKpPrLdHRSuTkTmhji0cM",
+    "photos_root_folder": r"C:\Users\MiniruwanMangala\OneDrive\Pictures\cars",
+    "facebook_photos_sub_folder_name": "facebook",
 
     "facebook_group_names": [
         "Cheap Vehicle's For Sale HB NZ",
