@@ -41,13 +41,15 @@ def remove_listing(data, listing_type, scraper):
 	if not listing_title:
 		return
 
+	print(f"Trying to delete: {title}")
+	print("---------------------------------")
 	listing_title.click()
 
 	# Click on the delete listing button
-	scraper.element_click('div[aria-label="Delete"]')
+	scraper.element_click('div[aria-label="Your Listing"] div[aria-label="Delete"]')
 	
 	# Click on confirm button to delete
-	confirm_delete_selector = 'div[aria-label="Delete Listing"] div[aria-label="Delete"][tabindex="0"]'
+	confirm_delete_selector = 'div[aria-label="Delete listing"] div[aria-label="Delete"][tabindex="0"]'
 	if scraper.find_element(confirm_delete_selector, False, 3):
 		scraper.element_click(confirm_delete_selector)
 	
@@ -55,6 +57,8 @@ def remove_listing(data, listing_type, scraper):
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
 
 def publish_listing(data, listing_type, scraper):
+	print(f"Trying to add: {data['Model']}")
+	print("---------------------------------")
 	# Click on create new listing button
 	scraper.element_click('div[aria-label="Marketplace sidebar"] a[aria-label="Create new listing"]')
 	# Choose listing type
@@ -90,11 +94,20 @@ def publish_listing(data, listing_type, scraper):
 def get_image_paths(photosSubFolder):
 	shell = win32com.client.Dispatch("WScript.Shell")
 
+	paths = []
+	# Eg: C:\Users\MiniruwanMangala\OneDrive\Pictures\cars\Toyota Echo\Facebook
 	folderPath = os.path.join(config["photos_root_folder"], photosSubFolder, config["facebook_photos_sub_folder_name"])
-	links = [os.path.join(folderPath, fn) for fn in next(os.walk(folderPath))[2]]
-	pathsToLink = [(shell.CreateShortCut(link)).Targetpath for link in links]
+	if os.path.exists(folderPath):
+		links = [os.path.join(folderPath, fn) for fn in next(os.walk(folderPath))[2]]
+		paths = [(shell.CreateShortCut(link)).Targetpath for link in links]
+	else:
+		# Eg: C:\Users\MiniruwanMangala\OneDrive\Pictures\cars\Toyota Echo
+		folderPath = os.path.dirname(folderPath)
+		paths = [os.path.join(folderPath, fn) for fn in next(os.walk(folderPath))[2]]
+	
+	paths = [ path for path in paths if not path.endswith(".txt") ]
 
-	return '\n'.join(pathsToLink)
+	return '\n'.join(paths)
 
 # Add specific fields for listing from type vehicle
 def add_fields_for_vehicle(data, scraper):
