@@ -15,11 +15,13 @@ def update_listings(listings, type, scraper):
 		if listing['Refresh Facebook Advertisement?'] != 'Yes':
 			continue
 
+		print(f"_____________ {listing['Photos Folder']} _____________")
 		# Remove listing if it is already published
 		remove_listing(listing, type, scraper)
 
 		# Publish the listing in marketplace
 		publish_listing(listing, type, scraper)
+		print(f"_____________ Done: {listing['Photos Folder']} _____________\n")
 
 def remove_listing(data, listing_type, scraper):
 	title = generate_title_for_listing_type(data, listing_type)
@@ -41,8 +43,7 @@ def remove_listing(data, listing_type, scraper):
 	if not listing_title:
 		return
 
-	print(f"Trying to delete: {title}")
-	print("---------------------------------")
+	print("Trying to delete ...")
 	listing_title.click()
 
 	# Click on the delete listing button
@@ -55,10 +56,11 @@ def remove_listing(data, listing_type, scraper):
 	
 	# Wait until the popup is closed
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
+	print("Deleted.\n")
 
 def publish_listing(data, listing_type, scraper):
-	print(f"Trying to add: {data['Model']}")
-	print("---------------------------------")
+	print(f"Trying to add...")
+
 	# Click on create new listing button
 	scraper.element_click('div[aria-label="Marketplace sidebar"] a[aria-label="Create new listing"]')
 	# Choose listing type
@@ -90,6 +92,7 @@ def publish_listing(data, listing_type, scraper):
 	# Publish the listing
 	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
 	time.sleep(5)
+	print("Successfully added.")
 
 def get_image_paths(photosSubFolder):
 	shell = win32com.client.Dispatch("WScript.Shell")

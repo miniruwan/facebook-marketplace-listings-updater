@@ -10,8 +10,9 @@ for group in accountGroups:
 
     scraper = Scraper('https://facebook.com')
 
-    print(f"Processing listings for account: {accountName}")
-    print("___________________________________________")
+    print("=============================================================================")
+    print(f"============== Processing listings for account: {accountName} ==============")
+    print("=============================================================================")
 
     # Add login functionality to the scraper
     scraper.add_login_functionality('https://facebook.com', 'svg[aria-label="Your profile"]', accountName)
