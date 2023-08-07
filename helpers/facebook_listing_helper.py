@@ -76,7 +76,7 @@ def publish_listing(data, listing_type, scraper):
 	# Call function by name dynamically
 	globals()[function_name](data, scraper)
 	
-	scraper.element_send_keys('label[aria-label="Price"] input', data['Price'])
+	scraper.element_send_keys('label[aria-label="Price"] input', data['Advertise Price'])
 	scraper.element_send_keys('label[aria-label="Description"] textarea', data['Description'])
 	scraper.element_send_keys('label[aria-label="Location"] input', data['Location'])
 	scraper.element_click('ul[role="listbox"] li:first-child > div')
@@ -87,7 +87,7 @@ def publish_listing(data, listing_type, scraper):
 		time.sleep(30)
 		scraper.element_click(next_button_selector)
 		# Add listing to multiple groups
-		add_listing_to_multiple_groups(data, scraper)
+		add_listing_to_multiple_groups(scraper)
 
 	# Publish the listing
 	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
@@ -127,12 +127,12 @@ def add_fields_for_vehicle(data, scraper):
 	scraper.element_click_by_xpath('//span[text()="' + data['Year'] + '"]')
 
 	scraper.element_send_keys('label[aria-label="Make"] input', data['Make'])
-	scraper.element_send_keys('label[aria-label="Model"] input', data['Model'])
+	scraper.element_send_keys('label[aria-label="Model"] input', get_model_and_details(data))
 
 	# Scroll to mileage input
 	scraper.scroll_to_element('label[aria-label="Mileage"] input')	
 	# Click on the mileage input
-	scraper.element_send_keys('label[aria-label="Mileage"] input', data['Mileage'])
+	scraper.element_send_keys('label[aria-label="Mileage"] input', f"{data['Kms']}000")
 
 	# Expand body style select
 	scraper.element_click('label[aria-label="Body style"]')
@@ -183,14 +183,20 @@ def generate_title_for_listing_type(data, listing_type):
 		title = data['Title']
 
 	if listing_type == 'vehicle':
-		title = data['Year'] + ' ' + data['Make'] + ' ' + data['Model']
+		title = data['Year'] + ' ' + data['Make'] + ' ' + get_model_and_details(data)
 
 	return title
 
 # Post in different groups
-def add_listing_to_multiple_groups(data, scraper):
+def add_listing_to_multiple_groups(scraper):
 	for group_name in config["facebook_group_names"]:
 		# Remove whitespace before and after the name
 		group_name = group_name.strip()
 
 		scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + group_name + '"]')
+
+def get_model_and_details(data):
+	if data['Details']:
+		return data['Model'] + " | " + data['Details']
+
+	return data['Model']
