@@ -2,7 +2,6 @@ import os
 import pickle
 import time
 import random
-from webdriver_manager.chrome import ChromeDriverManager
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.chrome.options import Options
@@ -15,7 +14,7 @@ from selenium.common.exceptions import ElementClickInterceptedException
 
 class Scraper:
 	# This time is used when we are waiting for element to get loaded in the html
-	wait_element_time = 30
+	wait_element_time = 90
 
 	# In this folder we will save cookies from logged in users
 	cookies_folder = 'cookies' + os.path.sep
@@ -52,8 +51,9 @@ class Scraper:
 
 	# Setup chrome driver with predefined options
 	def setup_driver(self):
-		chrome_driver_path = ChromeDriverManager().install()
-		self.driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options = self.driver_options)
+		#self.service = ChromeService(executable_path=r'C:\Packages\chromedriver-win64\chromedriver.exe')
+		self.driver = webdriver.Chrome(options = self.driver_options)
+		#self.driver = webdriver.Chrome(options = self.driver_options)
 		self.driver.get(self.url)
 		self.driver.maximize_window()
 

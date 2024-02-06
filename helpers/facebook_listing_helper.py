@@ -12,9 +12,6 @@ def update_listings(listings, type, scraper):
 
 	# Check if listing is already listed and remove it then publish it like a new one
 	for listing in listings:
-		if listing['Refresh Facebook Advertisement?'] != 'Yes':
-			continue
-
 		print(f"_____________ {listing['Photos Folder']} _____________")
 		# Remove listing if it is already published
 		remove_listing(listing, type, scraper)
@@ -50,9 +47,11 @@ def remove_listing(data, listing_type, scraper):
 	scraper.element_click('div[aria-label="Your Listing"] div[aria-label="Delete"]')
 	
 	# Click on confirm button to delete
-	confirm_delete_selector = 'div[aria-label="Delete listing"] div[aria-label="Delete"][tabindex="0"]'
-	if scraper.find_element(confirm_delete_selector, False, 3):
-		scraper.element_click(confirm_delete_selector)
+	#confirm_delete_selector = '//div[@role="dialog"]//div[@aria-label="Delete"]//span[text()]'
+	#confirm_delete_selector = '//div[@role="dialog"]//div[not(@role="gridcell")]//div[@aria-label="Delete"][not(@aria-disabled)]//span[text()="Delete"]'
+	confirm_delete_selector = '//div[@role="dialog"]//div[not(@role="gridcell")]/div[@aria-label="Delete"][not(@aria-disabled)]//span[text()="Delete"]'
+	if scraper.find_element_by_xpath(confirm_delete_selector, False, 3):
+		scraper.element_click_by_xpath(confirm_delete_selector)
 	
 	# Wait until the popup is closed
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
@@ -91,7 +90,7 @@ def publish_listing(data, listing_type, scraper):
 
 	# Publish the listing
 	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
-	time.sleep(5)
+	time.sleep(10)
 	print("Successfully added.")
 
 def get_image_paths(photosSubFolder):
@@ -152,7 +151,7 @@ def add_fields_for_vehicle(data, scraper):
 	# Expand transmission select
 	scraper.element_click('label[aria-label="Transmission"]')
 	# Select transmission
-	scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + '"]')
+	scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + ' transmission' + '"]')
 
 	if data['Clean Title'] == "Yes":
 		scraper.element_click('input[aria-label="This vehicle has a clean title."]')
@@ -196,7 +195,7 @@ def add_listing_to_multiple_groups(scraper):
 		scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + group_name + '"]')
 
 def get_model_and_details(data):
-	if data['Details']:
+	if data['Details'] != "":
 		return data['Model'] + " | " + data['Details']
 
 	return data['Model']

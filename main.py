@@ -6,6 +6,10 @@ from config import config
 accountGroups = get_data_from_google_sheet(sheetId=config["google_sheetId"])
 for group in accountGroups:
     accountName = group[0]
+
+    if not accountName:
+        continue
+    
     vehicle_listings = group[1].to_dict(orient='records')
 
     scraper = Scraper('https://facebook.com')

@@ -37,6 +37,7 @@ Facebook marketplace bot that automatically removes and then uploads listings fr
       python -m pip install selenium
       python -m pip install pickle-mixin
       python -m pip install webdriver-manager
+      python -m pip install pypiwin32
       ```
 3. Install the `Google Chrome` browser if you don't have it already - https://www.google.com/chrome/.
 
