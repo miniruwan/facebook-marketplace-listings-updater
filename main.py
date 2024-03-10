@@ -24,4 +24,4 @@ for group in accountGroups:
     scraper.go_to_page('https://facebook.com/marketplace/you/selling')
 
     # Publish all of the vehicles into the facebook marketplace
-    update_facebook_listings(vehicle_listings, 'vehicle', scraper)
+    update_facebook_listings(vehicle_listings, scraper)
