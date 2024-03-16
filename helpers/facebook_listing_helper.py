@@ -126,10 +126,11 @@ def publish_listing(data, scraper):
 
 	# Wait until photos are uploaded
 	driver:ChromiumDriver = scraper.driver
-	WebDriverWait(driver, 30).until(
+	WebDriverWait(driver, 60).until(
 		lambda driver: len(driver.find_elements_by_xpath('//img[starts-with(@src, "data:image/gif;base64")]')) <= 1
 	)
 
+	time.sleep(5)
 	next_button_selector = 'div [aria-label="Next"] > div'
 	if scraper.find_element(next_button_selector, False, 3):
 		scraper.element_click(next_button_selector)
