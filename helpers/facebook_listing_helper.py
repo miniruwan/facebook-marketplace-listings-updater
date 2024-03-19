@@ -3,14 +3,14 @@ import time
 import win32com.client 
 
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
-from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.keys import Keys
 
+from helpers.scraper import Scraper
 from config import config
 
 # Remove and then publish each listing
-def update_listings(listings, scraper):
+def update_listings(listings, scraper:Scraper):
 	# If listings are empty stop the function
 	if not listings:
 		return
@@ -25,7 +25,7 @@ def update_listings(listings, scraper):
 		publish_listing(listing, scraper)
 		print(f"_____________ Done: {listing['Photos Folder']} _____________\n")
 
-def remove_listing(data, scraper):
+def remove_listing(data, scraper:Scraper):
 	title = generate_title(data)
 	
 	searchInput = scraper.find_element('input[placeholder="Search your listings"]', False)
@@ -49,7 +49,7 @@ def remove_listing(data, scraper):
 	listing_title.click()
 
 	# Click on the delete listing button
-	scraper.element_click('div[aria-label="Your Listing"] div[aria-label="Delete"]')
+	scraper.element_click('div[aria-label="Your Listing" i] div[aria-label="Delete" i]')
 	
 	# Click on confirm button to delete
 	#confirm_delete_selector = '//div[@role="dialog"]//div[@aria-label="Delete"]//span[text()]'
@@ -62,7 +62,7 @@ def remove_listing(data, scraper):
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
 	print("Deleted.\n")
 
-def publish_listing(data, scraper):
+def publish_listing(data, scraper:Scraper):
 	print(f"Trying to add...")
 
 	# Click on create new listing button
@@ -75,10 +75,7 @@ def publish_listing(data, scraper):
 	# Add images to the the listing
 	scraper.input_file_add_files('input[accept="image/*,image/heif,image/heic"]', images_path)
 
-	# Expand vehicle type select
-	scraper.element_click('label[aria-label="Vehicle type"]')
-	# Select vehicle type
-	scraper.element_click_by_xpath('//span[text()="Car/Truck"]')
+	select_vehicle_type(scraper)
 
 	scraper.element_send_keys('label[aria-label="Location"] input', data['Location'])
 	scraper.element_click('ul[role="listbox"] li:first-child > div')
@@ -130,7 +127,7 @@ def publish_listing(data, scraper):
 		lambda driver: len(driver.find_elements_by_xpath('//img[starts-with(@src, "data:image/gif;base64")]')) <= 1
 	)
 
-	time.sleep(5)
+	time.sleep(15)
 	next_button_selector = 'div [aria-label="Next"] > div'
 	if scraper.find_element(next_button_selector, False, 3):
 		scraper.element_click(next_button_selector)
@@ -166,7 +163,7 @@ def generate_title(data):
 	return data['Year'] + ' ' + data['Make'] + ' ' + get_model_and_details(data)
 
 # Post in different groups
-def add_listing_to_multiple_groups(scraper):
+def add_listing_to_multiple_groups(scraper:Scraper):
 	for group_name in config["facebook_group_names"]:
 		# Remove whitespace before and after the name
 		group_name = group_name.strip()
@@ -178,3 +175,12 @@ def get_model_and_details(data):
 		return data['Model'] + " | " + data['Details']
 
 	return data['Model']
+
+def select_vehicle_type(scraper:Scraper):
+	# Select the first element
+	scraper.element_send_keys('label[aria-label="Vehicle type"]', Keys.DOWN)
+	scraper.element_send_keys('label[aria-label="Vehicle type"]', Keys.ENTER)
+
+	text = scraper.find_element_by_xpath('(//label[@aria-label="Vehicle type"]//span)[2]').text
+
+	assert text == "Car/Truck" or text == "Car/van"
