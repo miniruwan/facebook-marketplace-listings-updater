@@ -10,6 +10,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import InvalidArgumentException
 from selenium.common.exceptions import ElementClickInterceptedException
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 class Scraper:
 	# This time is used when we are waiting for element to get loaded in the html
@@ -51,7 +53,7 @@ class Scraper:
 	# Setup chrome driver with predefined options
 	def setup_driver(self):
 		#self.service = ChromeService(executable_path=r'C:\Packages\chromedriver-win64\chromedriver.exe')
-		self.driver = webdriver.Chrome(options = self.driver_options)
+		self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options = self.driver_options)
 		#self.driver = webdriver.Chrome(options = self.driver_options)
 		self.driver.get(self.url)
 		self.driver.maximize_window()

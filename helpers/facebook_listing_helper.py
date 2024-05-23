@@ -7,10 +7,11 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
 
 from helpers.scraper import Scraper
+from helpers.google_sheet_helper import GoogleSheetWriter
 from config import config
 
 # Remove and then publish each listing
-def update_listings(listings, scraper:Scraper):
+def update_listings(listings, scraper:Scraper, google_sheet_writer: GoogleSheetWriter):
 	# If listings are empty stop the function
 	if not listings:
 		return
@@ -23,6 +24,7 @@ def update_listings(listings, scraper:Scraper):
 
 		# Publish the listing in marketplace
 		publish_listing(listing, scraper)
+		google_sheet_writer.update_flag_in_sheet(listing["Plate Number"])
 		print(f"_____________ Done: {listing['Photos Folder']} _____________\n")
 
 def remove_listing(data, scraper:Scraper):
