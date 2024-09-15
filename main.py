@@ -18,7 +18,7 @@ for group in accountGroups:
     scraper = Scraper('https://facebook.com')
 
     print("=============================================================================")
-    print(f"============== Processing listings for account: {accountName} ==============")
+    print(f"============== Processing {len(vehicle_listings)} listings for account: {accountName} ==============")
     print("=============================================================================")
 
     # Add login functionality to the scraper

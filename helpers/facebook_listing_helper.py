@@ -5,6 +5,7 @@ import win32com.client
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.common.by import By
 
 from helpers.scraper import Scraper
 from helpers.google_sheet_helper import GoogleSheetWriter
@@ -12,9 +13,6 @@ from config import config
 
 # Remove and then publish each listing
 def update_listings(listings, scraper:Scraper, google_sheet_writer: GoogleSheetWriter):
-	# If listings are empty stop the function
-	if not listings:
-		return
 
 	# Check if listing is already listed and remove it then publish it like a new one
 	for listing in listings:
@@ -101,7 +99,9 @@ def publish_listing(data, scraper:Scraper):
 	# Expand body style select
 	scraper.element_click('label[aria-label="Body style"]')
 	# Select vehicle condition
-	scraper.element_click_by_xpath('//span[text()="' + data['Body Style'] + '"]')
+	scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + data['Body Style'] + '"]')
+	if data['Body Style'] == 'SUV':
+		scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="4x4"]')
 
 	if data['Clean Title'] == "Yes":
 		scraper.element_click('input[aria-label="This vehicle has a clean title."]')
@@ -126,17 +126,18 @@ def publish_listing(data, scraper:Scraper):
 	# Wait until photos are uploaded
 	driver:ChromiumDriver = scraper.driver
 	WebDriverWait(driver, 60).until(
-		lambda driver: len(driver.find_elements_by_xpath('//img[starts-with(@src, "data:image/gif;base64")]')) <= 1
+		lambda driver: len(driver.find_elements(By.XPATH, '//img[starts-with(@src, "data:image/gif;base64")]')) <= 1
 	)
 
-	time.sleep(15)
+	time.sleep(25)
 	next_button_selector = 'div [aria-label="Next"] > div'
 	if scraper.find_element(next_button_selector, False, 3):
 		scraper.element_click(next_button_selector)
 		# Add listing to multiple groups
-		add_listing_to_multiple_groups(scraper)
+		# add_listing_to_multiple_groups(scraper)
 
 	# Publish the listing
+	time.sleep(15)
 	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
 	scraper.element_wait_to_be_invisible('div[aria-label="Publish"]')
 
