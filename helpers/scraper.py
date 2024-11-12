@@ -295,11 +295,7 @@ class Scraper:
 
 	def element_wait_to_be_invisible(self, selector):
 		wait_until = EC.invisibility_of_element_located((By.CSS_SELECTOR, selector))
-
-		try:
-			WebDriverWait(self.driver, self.wait_element_time).until(wait_until)
-		except:
-			print('Error waiting the element with selector "' + selector + '" to be invisible')
+		WebDriverWait(self.driver, self.wait_element_time).until(wait_until)
 	
 	def scroll_to_element(self, selector):
 		element = self.find_element(selector)

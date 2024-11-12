@@ -45,7 +45,7 @@ def remove_listing(data, scraper:Scraper):
 	if not listing_title:
 		return
 
-	print("Trying to delete ...")
+	print("🧹 Trying to delete ...")
 	listing_title.click()
 
 	# Click on the delete listing button
@@ -60,10 +60,10 @@ def remove_listing(data, scraper:Scraper):
 	
 	# Wait until the popup is closed
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
-	print("Deleted.\n")
+	print("✅ Deleted.\n")
 
 def publish_listing(data, scraper:Scraper):
-	print(f"Trying to add...")
+	print(f"➕ Trying to add...")
 
 	# Click on create new listing button
 	scraper.element_click('div[aria-label="Marketplace sidebar"] a[aria-label="Create new listing"]')
@@ -138,10 +138,44 @@ def publish_listing(data, scraper:Scraper):
 
 	# Publish the listing
 	time.sleep(15)
-	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
-	scraper.element_wait_to_be_invisible('div[aria-label="Publish"]')
+	do_final_publishing(data, scraper)
 
-	print("Successfully added.")
+def do_final_publishing(data, scraper:Scraper):
+	scraper.element_click('div[aria-label="Publish"]:not([aria-disabled])')
+	try:
+		scraper.element_wait_to_be_invisible('div[aria-label="Publish"]')
+	except Exception as e:
+		handledError = handle_final_publishing_error(data, scraper)
+
+		if handledError:
+			print("💪 Sucessfully handled \"Something went wrong\" error.")
+			return
+
+		print(f'😔 Failed to add: {repr(e)}')
+		return
+
+	print("🎉 Successfully added.")
+
+
+def handle_final_publishing_error(data, scraper:Scraper):
+
+	if not scraper.find_element_by_xpath('//span[text()="Something went wrong"]', False, 1):
+		return False
+
+	print("\n🤞 Got \"Something went wrong\" message from facebook. Trying to delete and re-publish...")
+
+	scraper.element_click_by_xpath('//span[text()="Close"]')
+
+	original_window = scraper.driver.current_window_handle
+	scraper.driver.switch_to.new_window('tab')
+	scraper.driver.get("https://www.facebook.com/marketplace/you/selling")
+	remove_listing(data, scraper)
+	scraper.driver.close()
+	scraper.driver.switch_to.window(original_window)
+
+	do_final_publishing(data, scraper)
+	return True
+
 
 def get_image_paths(photosSubFolder):
 	shell = win32com.client.Dispatch("WScript.Shell")
