@@ -54,21 +54,20 @@ def remove_listing(data, scraper:Scraper):
 	# Click on confirm button to delete
 	#confirm_delete_selector = '//div[@role="dialog"]//div[@aria-label="Delete"]//span[text()]'
 	#confirm_delete_selector = '//div[@role="dialog"]//div[not(@role="gridcell")]//div[@aria-label="Delete"][not(@aria-disabled)]//span[text()="Delete"]'
-	confirm_delete_selector = '//div[@role="dialog"]//div[not(@role="gridcell")]/div[@aria-label="Delete"][not(@aria-disabled)]//span[text()="Delete"]'
-	if scraper.find_element_by_xpath(confirm_delete_selector, False, 3):
-		scraper.element_click_by_xpath(confirm_delete_selector)
-	
+	#confirm_delete_selector = '//div[@role="dialog"]//div[not(@role="gridcell")]/div[@aria-label="Delete"][not(@aria-disabled)]//span[text()="Delete"]'
+	confirm_delete_selector = '(//div[@role="dialog"]//span[text()="Delete"])[last()]'
+	#if scraper.find_element_by_xpath(confirm_delete_selector, False, 3):
+	scraper.element_click_by_xpath(confirm_delete_selector)
+
 	# Wait until the popup is closed
 	scraper.element_wait_to_be_invisible('div[aria-label="Your Listing"]')
+
 	print("✅ Deleted.\n")
 
 def publish_listing(data, scraper:Scraper):
 	print(f"➕ Trying to add...")
 
-	# Click on create new listing button
-	scraper.element_click('div[aria-label="Marketplace sidebar"] a[aria-label="Create new listing"]')
-
-	scraper.element_click('a[href="/marketplace/create/vehicle/"]')
+	scraper.go_to_page("https://www.facebook.com/marketplace/create/vehicle")
 
 	# Create string that contains all of the image paths separeted by \n
 	images_path = get_image_paths(data['Photos Folder'])
@@ -77,51 +76,46 @@ def publish_listing(data, scraper:Scraper):
 
 	select_vehicle_type(scraper)
 
-	scraper.element_send_keys('label[aria-label="Location"] input', data['Location'])
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Location")]/following-sibling::input', data["Location"])
 	scraper.element_click('ul[role="listbox"] li:first-child > div')
 
-	# Scroll to years select
-	scraper.scroll_to_element('label[aria-label="Year"]')
-	# Expand years select
-	scraper.element_click('label[aria-label="Year"]')
+	scraper.element_click_by_xpath("//span[contains(text(),'Year')]")
 	scraper.element_click_by_xpath('//span[text()="' + data['Year'] + '"]')
 
-	scraper.element_send_keys('label[aria-label="Make"] input', data['Make'])
-	scraper.element_send_keys('label[aria-label="Model"] input', get_model_and_details(data))
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Make")]/following-sibling::input', data['Make'])
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Model")]/following-sibling::input', get_model_and_details(data))
 
-	# Scroll to mileage input
-	scraper.scroll_to_element('label[aria-label="Mileage"] input')	
-	# Click on the mileage input
-	scraper.element_send_keys('label[aria-label="Mileage"] input', f"{data['Kms']}000")
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Mileage")]/following-sibling::input', f"{data['Kms']}000")
 
-	scraper.element_send_keys('label[aria-label="Price"] input', data['Advertise Price'])
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Price")]/following-sibling::input', data["Advertise Price"])
 
 	# Expand body style select
-	scraper.element_click('label[aria-label="Body style"]')
-	# Select vehicle condition
+	scraper.element_click_by_xpath("//span[contains(text(),'Body style')]")
 	scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + data['Body Style'] + '"]')
 	if data['Body Style'] == 'SUV':
 		scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="4x4"]')
 
+	# Select vehicle condition
 	if data['Clean Title'] == "Yes":
 		scraper.element_click('input[aria-label="This vehicle has a clean title."]')
 
 	# Expand vehicle condition select
-	scraper.element_click('label[aria-label="Vehicle condition"]')
+	scraper.element_click_by_xpath("//span[contains(text(),'Vehicle condition')]")
 	# Select vehicle condition
 	scraper.element_click_by_xpath('//span[text()="' + data['Vehicle Condition'] + '"]')
 
 	# Expand fuel type select
-	scraper.element_click('label[aria-label="Fuel type"]')
+	scraper.element_click_by_xpath("//span[contains(text(),'Fuel type')]")
 	# Select fuel type
 	scraper.element_click_by_xpath('//span[text()="' + data['Fuel Type'] + '"]')
 
 	# Expand transmission select
-	scraper.element_click('label[aria-label="Transmission"]')
+	scraper.element_click_by_xpath("//span[contains(text(),'Transmission')]")
 	# Select transmission
 	scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + ' transmission' + '"]')
 	
-	scraper.element_send_keys('label[aria-label="Description"] textarea', data['Description'])
+	scraper.scroll_to_element_by_xpath('//span[contains(text(),"Description")]/..//textarea')
+	scraper.element_send_keys_by_xpath('//span[contains(text(),"Description")]/..//textarea', data['Description'])
 
 	# Wait until photos are uploaded
 	driver:ChromiumDriver = scraper.driver
@@ -214,10 +208,6 @@ def get_model_and_details(data):
 	return data['Model']
 
 def select_vehicle_type(scraper:Scraper):
-	# Select the first element
-	scraper.element_send_keys('label[aria-label="Vehicle type"]', Keys.DOWN)
-	scraper.element_send_keys('label[aria-label="Vehicle type"]', Keys.ENTER)
-
-	text = scraper.find_element_by_xpath('(//label[@aria-label="Vehicle type"]//span)[2]').text
-
-	assert text == "Car/Truck" or text == "Car/van"
+	scraper.element_click_by_xpath("//span[contains(text(),'Vehicle type')]")
+	scraper.element_click_by_xpath_ignore_if_not_found("//span[contains(text(),'Car/Truck')]")
+	scraper.element_click_by_xpath_ignore_if_not_found("//span[contains(text(),'Car/van')]")
