@@ -4,7 +4,7 @@ import win32com.client
 
 from selenium.webdriver.chromium.webdriver import ChromiumDriver
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.common.keys import Keys
+from selenium.common.exceptions import ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 
 from helpers.scraper import Scraper
@@ -37,16 +37,21 @@ def remove_listing(data, scraper:Scraper):
 	scraper.element_delete_text('input[placeholder="Search your listings"]')
 	# Enter the title of the listing in the input for search
 	scraper.element_send_keys('input[placeholder="Search your listings"]', title.lower())
+
 	# Search for the listing by the title
 	listing_title_xpath = f'//span[text()[contains(translate(., "ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz"),"{title.lower()}")]]'
-	listing_title = scraper.find_element_by_xpath(listing_title_xpath, False, 3)
+	listing_title = scraper.find_element_by_xpath(listing_title_xpath, False, 15)
 
 	# Listing not found so stop the function
 	if not listing_title:
 		return
 
 	print("🧹 Trying to delete ...")
-	listing_title.click()
+
+	try:
+		listing_title.click()
+	except ElementClickInterceptedException:
+		scraper.driver.execute_script("arguments[0].click()", listing_title)
 
 	# Click on the delete listing button
 	scraper.element_click('div[aria-label="Your Listing" i] div[aria-label="Delete" i]')
@@ -69,9 +74,9 @@ def publish_listing(data, scraper:Scraper):
 
 	scraper.go_to_page("https://www.facebook.com/marketplace/create/vehicle")
 
-	# Create string that contains all of the image paths separeted by \n
+	# Create string that contains all the image paths separated by \n
 	images_path = get_image_paths(data['Photos Folder'])
-	# Add images to the the listing
+	# Add images to the listing
 	scraper.input_file_add_files('input[accept="image/*,image/heif,image/heic"]', images_path)
 
 	select_vehicle_type(scraper)
@@ -82,8 +87,13 @@ def publish_listing(data, scraper:Scraper):
 	scraper.element_click_by_xpath("//span[contains(text(),'Year')]")
 	scraper.element_click_by_xpath('//span[text()="' + data['Year'] + '"]')
 
-	scraper.element_send_keys_by_xpath('//span[contains(text(),"Make")]/following-sibling::input', data['Make'])
-	scraper.element_send_keys_by_xpath('//span[contains(text(),"Model")]/following-sibling::input', get_model_and_details(data))
+	make_element_xpath = '//span[contains(text(),"Make")]/following-sibling::input'
+	scraper.scroll_to_element_by_xpath(make_element_xpath)
+	scraper.element_send_keys_by_xpath(make_element_xpath, data['Make'])
+
+	model_element_xpath = '//span[contains(text(),"Model")]/following-sibling::input'
+	scraper.scroll_to_element_by_xpath(model_element_xpath)
+	scraper.element_send_keys_by_xpath(model_element_xpath, get_model_and_details(data))
 
 	scraper.element_send_keys_by_xpath('//span[contains(text(),"Mileage")]/following-sibling::input', f"{data['Kms']}000")
 
@@ -113,9 +123,10 @@ def publish_listing(data, scraper:Scraper):
 	scraper.element_click_by_xpath("//span[contains(text(),'Transmission')]")
 	# Select transmission
 	scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + ' transmission' + '"]')
-	
-	scraper.scroll_to_element_by_xpath('//span[contains(text(),"Description")]/..//textarea')
-	scraper.element_send_keys_by_xpath('//span[contains(text(),"Description")]/..//textarea', data['Description'])
+
+	description_element_xpath = '//span[contains(text(),"Description")]/..//textarea'
+	scraper.scroll_to_element_by_xpath(description_element_xpath)
+	scraper.element_send_keys_by_xpath(description_element_xpath, data['Description'])
 
 	# Wait until photos are uploaded
 	driver:ChromiumDriver = scraper.driver
@@ -142,7 +153,7 @@ def do_final_publishing(data, scraper:Scraper):
 		handledError = handle_final_publishing_error(data, scraper)
 
 		if handledError:
-			print("💪 Sucessfully handled \"Something went wrong\" error.")
+			print("💪 Successfully handled \"Something went wrong\" error.")
 			return
 
 		print(f'😔 Failed to add: {repr(e)}')

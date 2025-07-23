@@ -2,6 +2,8 @@ import os
 import pickle
 import time
 import random
+import pyperclip
+
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -12,6 +14,8 @@ from selenium.common.exceptions import InvalidArgumentException
 from selenium.common.exceptions import ElementClickInterceptedException
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service as ChromeService
+
+from helpers import emoji_helper
 
 class Scraper:
 	# This time is used when we are waiting for element to get loaded in the html
@@ -77,7 +81,7 @@ class Scraper:
 		
 		# Wait for the user to log in with maximum amount of time 5 minutes
 		self.driver.execute_script(f'document.title = "{account_name}"')
-		print(f'Please login to "{account_name}" account manually in the browser and after that you will be automatically loged in with cookies. Note that if you do not log in for five minutes, the program will turn off.')
+		print(f'Please login to "{account_name}" account manually in the browser and after that you will be automatically logged in with cookies. Note that if you do not log in for five minutes, the program will turn off.')
 		is_logged_in = self.is_logged_in(300)
 
 		# User is not logged in so exit from the program
@@ -237,7 +241,11 @@ class Scraper:
 		except ElementClickInterceptedException:
 			self.driver.execute_script("arguments[0].click();", element)
 
-		element.send_keys(text)
+		if emoji_helper.contains_emoji(text):
+			pyperclip.copy(text)
+			element.send_keys(Keys.CONTROL, 'v')
+		else:
+			element.send_keys(text)
 
 	# Wait random time before sending the keys to the element
 	def element_send_keys_by_xpath(self, xpath, text, delay = True):
@@ -251,10 +259,14 @@ class Scraper:
 		except ElementClickInterceptedException:
 			self.driver.execute_script("arguments[0].click();", element)
 		
-		element.send_keys(text)
+		if emoji_helper.contains_emoji(text):
+			pyperclip.copy(text)
+			element.send_keys(Keys.CONTROL, 'v')
+		else:
+			element.send_keys(text)
 
 	def input_file_add_files(self, selector, files):
-		# Intialize the condition to wait
+		# Initialize the condition to wait
 		wait_until = EC.presence_of_element_located((By.CSS_SELECTOR, selector))
 
 		try:
