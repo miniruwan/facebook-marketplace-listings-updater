@@ -1,5 +1,3 @@
-import os
-import pickle
 import time
 import random
 import pyperclip
@@ -12,20 +10,16 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import InvalidArgumentException
 from selenium.common.exceptions import ElementClickInterceptedException
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service as ChromeService
+import undetected as uc
 
-from helpers import emoji_helper
+from config import config
 
 class Scraper:
 	# This time is used when we are waiting for element to get loaded in the html
 	wait_element_time = 90
 
-	# In this folder we will save cookies from logged in users
-	cookies_folder = 'cookies' + os.path.sep
-
-	def __init__(self, url):
-		self.url = url
+	def __init__(self, profile_directory):
+		self.profile_directory = profile_directory
 
 		self.setup_driver_options()
 		self.setup_driver()
@@ -40,105 +34,22 @@ class Scraper:
 		self.driver_options = Options()
 
 		arguments = [
-			'--disable-blink-features=AutomationControlled'
+			'--disable-blink-features=AutomationControlled',
+			f"user-data-dir={config['user_data_root_folder']}",
+			f"profile-directory={self.profile_directory}"
 		]
-
-		experimental_options = {
-			'excludeSwitches': ['enable-automation', 'enable-logging'],
-			'prefs': {'profile.default_content_setting_values.notifications': 2}
-		}
 
 		for argument in arguments:
 			self.driver_options.add_argument(argument)
 
-		for key, value in experimental_options.items():
-			self.driver_options.add_experimental_option(key, value)
-
 	# Setup chrome driver with predefined options
 	def setup_driver(self):
-		#self.service = ChromeService(executable_path=r"C:\packages\chromedriver-win64\chromedriver.exe")
-		#self.driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options = self.driver_options)
-		self.driver = webdriver.Chrome(options = self.driver_options)
-		self.driver.get(self.url)
+		self.driver =  uc.Chrome(options = self.driver_options)
 		self.driver.maximize_window()
-
-	# Add login functionality and load cookies if there are any with 'account_name'
-	def add_login_functionality(self, login_url, is_logged_in_selector, account_name):
-		self.login_url = login_url
-		self.is_logged_in_selector = is_logged_in_selector
-		self.cookies_file_name = account_name + '.pkl'
-		self.cookies_file_path = self.cookies_folder + self.cookies_file_name
-
-		# Check if there is a cookie file saved
-		if self.is_cookie_file():
-			# Load cookies
-			self.load_cookies()
-			
-			# Check if user is logged in after adding the cookies
-			is_logged_in = self.is_logged_in(5)
-			if is_logged_in:
-				return
-		
-		# Wait for the user to log in with maximum amount of time 5 minutes
-		self.driver.execute_script(f'document.title = "{account_name}"')
-		print(f'Please login to "{account_name}" account manually in the browser and after that you will be automatically logged in with cookies. Note that if you do not log in for five minutes, the program will turn off.')
-		is_logged_in = self.is_logged_in(300)
-
-		# User is not logged in so exit from the program
-		if not is_logged_in:
-			exit()
-
-		# User is logged in so save the cookies
-		self.save_cookies()
-
-	# Check if cookie file exists
-	def is_cookie_file(self):
-		return os.path.exists(self.cookies_file_path)
-
-	# Load cookies from file
-	def load_cookies(self):
-		# Load cookies from the file
-		cookies_file = open(self.cookies_file_path, 'rb')
-		cookies = pickle.load(cookies_file)
-		
-		for cookie in cookies:
-			self.driver.add_cookie(cookie)
-
-		cookies_file.close()
-
-		self.go_to_page(self.url)
-
-	# Save cookies to file
-	def save_cookies(self):
-		# Do not save cookies if there is no cookies_file name 
-		if not hasattr(self, 'cookies_file_path'):
-			return
-
-		# Create folder for cookies if there is no folder in the project
-		if not os.path.exists(self.cookies_folder):
-			os.mkdir(self.cookies_folder)
-
-		# Open or create cookies file
-		cookies_file = open(self.cookies_file_path, 'wb')
-		
-		# Get current cookies from the driver
-		cookies = self.driver.get_cookies()
-
-		# Save cookies in the cookie file as a byte stream
-		pickle.dump(cookies, cookies_file)
-
-		cookies_file.close()
-
-	# Check if user is logged in based on a html element that is visible only for logged in users
-	def is_logged_in(self, wait_element_time = None):
-		if wait_element_time is None:
-			wait_element_time = self.wait_element_time
-
-		return self.find_element(self.is_logged_in_selector, False, wait_element_time)
 
 	# Wait random amount of seconds before taking some action so the server won't be able to tell if you are a bot
 	def wait_random_time(self):
-		random_sleep_seconds = round(random.uniform(0.20, 1.20), 2)
+		random_sleep_seconds = round(random.uniform(2.20, 4.20), 2)
 
 		time.sleep(random_sleep_seconds)
 
@@ -146,8 +57,6 @@ class Scraper:
 	def go_to_page(self, page):
 		# Wait random time before refreshing the page to prevent the detection as a bot
 		self.wait_random_time()
-
-		# Refresh the site url with the loaded cookies so the user will be logged in
 		self.driver.get(page)
 
 	def find_element(self, selector, exit_on_missing_element = True, wait_element_time = None):
@@ -241,11 +150,8 @@ class Scraper:
 		except ElementClickInterceptedException:
 			self.driver.execute_script("arguments[0].click();", element)
 
-		if emoji_helper.contains_emoji(text):
-			pyperclip.copy(text)
-			element.send_keys(Keys.CONTROL, 'v')
-		else:
-			element.send_keys(text)
+		pyperclip.copy(text)
+		element.send_keys(Keys.CONTROL, 'v')
 
 	# Wait random time before sending the keys to the element
 	def element_send_keys_by_xpath(self, xpath, text, delay = True):
@@ -259,11 +165,8 @@ class Scraper:
 		except ElementClickInterceptedException:
 			self.driver.execute_script("arguments[0].click();", element)
 		
-		if emoji_helper.contains_emoji(text):
-			pyperclip.copy(text)
-			element.send_keys(Keys.CONTROL, 'v')
-		else:
-			element.send_keys(text)
+		pyperclip.copy(text)
+		element.send_keys(Keys.CONTROL, 'v')
 
 	def input_file_add_files(self, selector, files):
 		# Initialize the condition to wait

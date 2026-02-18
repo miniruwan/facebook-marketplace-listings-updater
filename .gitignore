@@ -3,4 +3,4 @@ cookies/
 .DS_Store
 *.ipynb
 playground/*
-.idea/
+.idea/ 

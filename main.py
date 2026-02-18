@@ -15,16 +15,11 @@ for group in accountGroups:
     
     vehicle_listings = group[1].to_dict(orient='records')
 
-    scraper = Scraper('https://facebook.com')
-
     print("=============================================================================")
     print(f"============== Processing {len(vehicle_listings)} listings for account: {accountName} ==============")
     print("=============================================================================")
 
-    # Add login functionality to the scraper
-    scraper.add_login_functionality('https://facebook.com', 'svg[aria-label="Your profile"]', accountName)
-
-    scraper.go_to_page('https://facebook.com/marketplace/you/selling')
+    scraper = Scraper(accountName)
 
     # Publish all of the vehicles into the facebook marketplace
     update_facebook_listings(vehicle_listings, scraper, google_sheet_writer)

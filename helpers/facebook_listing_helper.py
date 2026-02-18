@@ -14,6 +14,8 @@ from config import config
 # Remove and then publish each listing
 def update_listings(listings, scraper:Scraper, google_sheet_writer: GoogleSheetWriter):
 
+	scraper.go_to_page('https://facebook.com/marketplace/you/selling')
+
 	# Check if listing is already listed and remove it then publish it like a new one
 	for listing in listings:
 		print(f"_____________ {listing['Photos Folder']} _____________")
@@ -54,7 +56,7 @@ def remove_listing(data, scraper:Scraper):
 		scraper.driver.execute_script("arguments[0].click()", listing_title)
 
 	# Click on the delete listing button
-	scraper.element_click('div[aria-label="Your Listing" i] div[aria-label="Delete" i]')
+	scraper.element_click_by_xpath('//div[@aria-label="Delete marketplace listing"]')
 	
 	# Click on confirm button to delete
 	#confirm_delete_selector = '//div[@role="dialog"]//div[@aria-label="Delete"]//span[text()]'
