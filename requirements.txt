@@ -1,5 +1,5 @@
-selenium
-webdriver_manager
+zendriver
 pandas
 gspread
 pywin32
+pyperclip

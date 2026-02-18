@@ -1,25 +1,43 @@
+import asyncio
+import sys
 from helpers.scraper import Scraper
 from helpers.google_sheet_helper import get_data_from_google_sheet, GoogleSheetWriter
 from helpers.facebook_listing_helper import update_listings as update_facebook_listings
 from config import config
 
 
-accountGroups = get_data_from_google_sheet(sheetId=config["google_sheetId"])
-google_sheet_writer = GoogleSheetWriter()
+async def main():
+	accountGroups = get_data_from_google_sheet(sheetId=config["google_sheetId"])
+	google_sheet_writer = GoogleSheetWriter()
 
-for group in accountGroups:
-    accountName = group[0]
+	for group in accountGroups:
+		accountName = group[0]
 
-    if not accountName:
-        continue
-    
-    vehicle_listings = group[1].to_dict(orient='records')
+		if not accountName:
+			continue
+		
+		vehicle_listings = group[1].to_dict(orient='records')
 
-    print("=============================================================================")
-    print(f"============== Processing {len(vehicle_listings)} listings for account: {accountName} ==============")
-    print("=============================================================================")
+		print("=============================================================================")
+		print(f"============== Processing {len(vehicle_listings)} listings for account: {accountName} ==============")
+		print("=============================================================================")
 
-    scraper = Scraper(accountName)
+		scraper = Scraper(accountName)
+		
+		# Initialize the browser
+		await scraper.setup_driver()
+		
+		try:
+			# Publish all of the vehicles into the facebook marketplace
+			await update_facebook_listings(vehicle_listings, scraper, google_sheet_writer)
+		finally:
+			# Close the browser
+			await scraper.close()
 
-    # Publish all of the vehicles into the facebook marketplace
-    update_facebook_listings(vehicle_listings, scraper, google_sheet_writer)
+
+if __name__ == '__main__':
+	# Use WindowsSelectorEventLoopPolicy for better compatibility on Windows
+	if sys.platform == "win32":
+		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+	
+	asyncio.run(main())
