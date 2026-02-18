@@ -1,8 +1,10 @@
 import time
 import random
 import asyncio
+import pyperclip
 
 import zendriver as zd
+from zendriver.core.keys import SpecialKeys, KeyModifiers, KeyEvents
 
 from config import config
 
@@ -115,7 +117,11 @@ class Scraper:
 
 		element = await self.find_element(selector)
 		await element.click()
-		await element.send_keys(text)
+		
+		pyperclip.copy(text)
+		# Simulate Ctrl+V
+		ctrl_v_events = KeyEvents.from_mixed_input([("v", KeyModifiers.Ctrl)])
+		await element.send_keys(ctrl_v_events)
 
 	# Wait random time before sending the keys to the element
 	async def element_send_keys_by_xpath(self, xpath, text, delay = True):
@@ -124,7 +130,11 @@ class Scraper:
 
 		element = await self.find_element_by_xpath(xpath)
 		await element.click()
-		await element.send_keys(text)
+		
+		pyperclip.copy(text)
+		# Simulate Ctrl+V
+		ctrl_v_events = KeyEvents.from_mixed_input([("v", KeyModifiers.Ctrl)])
+		await element.send_keys(ctrl_v_events)
 
 	async def input_file_add_files(self, selector, files):
 		try:
