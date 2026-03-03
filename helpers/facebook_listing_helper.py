@@ -78,22 +78,16 @@ async def publish_listing(data, scraper:Scraper):
 	await scraper.element_click_by_xpath("//span[contains(text(),'Year')]")
 	await scraper.element_click_by_xpath('//span[text()="' + data['Year'] + '"]')
 
-	make_element_xpath = '//span[contains(text(),"Make")]/following-sibling::input'
-	await scraper.scroll_to_element_by_xpath(make_element_xpath)
-	await scraper.element_send_keys_by_xpath(make_element_xpath, data['Make'])
+	await scraper.element_send_keys_by_xpath('//span[contains(text(),"Make")]/following-sibling::input', data['Make'])
 
-	model_element_xpath = '//span[contains(text(),"Model")]/following-sibling::input'
-	await scraper.scroll_to_element_by_xpath(model_element_xpath)
-	await scraper.element_send_keys_by_xpath(model_element_xpath, get_model_and_details(data))
+	await scraper.element_send_keys_by_xpath('//span[contains(text(),"Model")]/following-sibling::input', get_model_and_details(data))
 
 	await scraper.element_send_keys_by_xpath('//span[contains(text(),"Mileage")]/following-sibling::input', f"{data['Kms']}000")
 
 	await scraper.element_send_keys_by_xpath('//span[contains(text(),"Price")]/following-sibling::input', data["Advertise Price"])
 
 	# Expand body style select
-	body_style_xpath = "//span[contains(text(),'Body style')]"
-	await scraper.scroll_to_element_by_xpath(body_style_xpath)
-	await scraper.element_click_by_xpath(body_style_xpath)
+	await scraper.element_click_by_xpath("//span[contains(text(),'Body style')]")
 	await scraper.element_click_by_xpath_ignore_if_not_found('//span[text()="' + data['Body Style'] + '"]')
 
 	# Select vehicle condition
@@ -101,29 +95,21 @@ async def publish_listing(data, scraper:Scraper):
 		await scraper.element_click('input[aria-label="This vehicle has a clean title."]')
 
 	# Expand vehicle condition select
-	vehicle_condition_xpath = "//span[contains(text(),'Vehicle condition')]"
-	await scraper.scroll_to_element_by_xpath(vehicle_condition_xpath)
-	await scraper.element_click_by_xpath(vehicle_condition_xpath)
+	await scraper.element_click_by_xpath("//span[contains(text(),'Vehicle condition')]")
 	# Select vehicle condition
 	await scraper.element_click_by_xpath('//span[text()="' + data['Vehicle Condition'] + '"]')
 
 	# Expand fuel type select
-	fuel_type_xpath = "//span[contains(text(),'Fuel type')]"
-	await scraper.scroll_to_element_by_xpath(fuel_type_xpath)
-	await scraper.element_click_by_xpath(fuel_type_xpath)
+	await scraper.element_click_by_xpath("//span[contains(text(),'Fuel type')]")
 	# Select fuel type
 	await scraper.element_click_by_xpath('//span[text()="' + data['Fuel Type'] + '"]')
 
 	# Expand transmission select
-	transmission_xpath = "//span[contains(text(),'Transmission')]"
-	await scraper.scroll_to_element_by_xpath(transmission_xpath)
-	await scraper.element_click_by_xpath(transmission_xpath)
+	await scraper.element_click_by_xpath("//span[contains(text(),'Transmission')]")
 	# Select transmission
 	await scraper.element_click_by_xpath('//span[text()="' + data['Transmission'] + ' transmission' + '"]')
 
-	description_element_xpath = '//span[contains(text(),"Description")]/..//textarea'
-	await scraper.scroll_to_element_by_xpath(description_element_xpath)
-	await scraper.element_send_keys_by_xpath(description_element_xpath, data['Description'])
+	await scraper.element_send_keys_by_xpath('//span[contains(text(),"Description")]/..//textarea', data['Description'])
 
 	# Wait until photos are uploaded - check for loading gif images
 	timeout = 60

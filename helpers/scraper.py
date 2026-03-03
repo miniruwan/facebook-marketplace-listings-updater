@@ -96,7 +96,22 @@ class Scraper:
 			await self.wait_random_time()
 
 		element = await self.find_element_by_xpath(xpath)
-		await element.click()
+		await element.scroll_into_view()
+		# Wait for element to settle after scrolling
+		await asyncio.sleep(0.5)
+		
+		# Retry clicking if position can't be found
+		max_retries = 3
+		for attempt in range(max_retries):
+			try:
+				await element.click()
+				break
+			except Exception as e:
+				if "could not find position" in str(e) and attempt < max_retries - 1:
+					print(f"Position not found, retrying click ({attempt + 1}/{max_retries})...")
+					await asyncio.sleep(0.5)
+				else:
+					raise
 
 	# Wait random time before clicking on the element, and also ignore if element can't be found
 	async def element_click_by_xpath_ignore_if_not_found(self, xpath, delay = True):
@@ -108,7 +123,26 @@ class Scraper:
 		if not element:
 			return # If element is not found, ignore
 
-		await element.click()
+		try:
+			await element.scroll_into_view()
+			# Wait for element to settle after scrolling
+			await asyncio.sleep(0.5)
+			
+			# Retry clicking if position can't be found
+			max_retries = 3
+			for attempt in range(max_retries):
+				try:
+					await element.click()
+					break
+				except Exception as e:
+					if "could not find position" in str(e) and attempt < max_retries - 1:
+						await asyncio.sleep(0.5)
+					else:
+						raise
+		except Exception:
+			# Element was found but couldn't be clicked (not visible, position not found, etc.)
+			# Since this method should ignore failures, we just return
+			return
 
 	# Wait random time before sending the keys to the element
 	async def element_send_keys(self, selector, text, delay = True):
@@ -129,6 +163,7 @@ class Scraper:
 			await self.wait_random_time()
 
 		element = await self.find_element_by_xpath(xpath)
+		await element.scroll_into_view()
 		await element.click()
 		
 		pyperclip.copy(text)
