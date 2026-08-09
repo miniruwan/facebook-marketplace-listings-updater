@@ -101,7 +101,7 @@ class Scraper:
 		await asyncio.sleep(0.5)
 		
 		# Retry clicking if position can't be found
-		max_retries = 3
+		max_retries = 10 
 		for attempt in range(max_retries):
 			try:
 				await element.click()
@@ -129,7 +129,7 @@ class Scraper:
 			await asyncio.sleep(0.5)
 			
 			# Retry clicking if position can't be found
-			max_retries = 3
+			max_retries = 10
 			for attempt in range(max_retries):
 				try:
 					await element.click()

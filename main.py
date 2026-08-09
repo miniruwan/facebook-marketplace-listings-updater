@@ -1,5 +1,4 @@
 import asyncio
-import sys
 from helpers.scraper import Scraper
 from helpers.google_sheet_helper import get_data_from_google_sheet, GoogleSheetWriter
 from helpers.facebook_listing_helper import update_listings as update_facebook_listings
@@ -36,8 +35,4 @@ async def main():
 
 
 if __name__ == '__main__':
-	# Use WindowsSelectorEventLoopPolicy for better compatibility on Windows
-	if sys.platform == "win32":
-		asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-	
 	asyncio.run(main())
